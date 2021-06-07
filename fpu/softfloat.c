@@ -977,16 +977,12 @@ static void frac128_clear(FloatParts128 *a)
     a->frac_hi = a->frac_lo = 0;
 }
 
-static void set_snan_flag(FloatParts a, FloatParts b, float_status *s)
-{
-    if (is_snan(a.cls) || is_snan(b.cls)) {
-        s->float_exception_flags |= float_flag_invalid;
-    }
-}
+#define frac_clear(A)  FRAC_GENERIC_64_128(clear, A)(A)
 
-static FloatParts pick_nan(FloatParts a, FloatParts b, float_status *s)
+static bool frac64_div(FloatParts64 *a, FloatParts64 *b)
 {
-    set_snan_flag(a, b, s);
+    uint64_t n1, n0, r, q;
+    bool ret;
 
     /*
      * We want a 2*N / N-bit division to produce exactly an N-bit
@@ -3864,36 +3860,6 @@ float128 uint64_to_float128(uint64_t a, float_status *status)
 /*
  * Minimum and maximum
  */
-static FloatParts minmax_floats(FloatParts a, FloatParts b, bool ismin,
-                                bool ieee, bool ismag, bool issnan_prop,
-                                float_status *s)
-{
-    if (unlikely(is_nan(a.cls) || is_nan(b.cls))) {
-        if (ieee) {
-            /* Takes two floating-point values `a' and `b', one of
-             * which is a NaN, and returns the appropriate NaN
-             * result. If either `a' or `b' is a signaling NaN,
-             * the invalid exception is raised but the NaN
-             * propagation is 'shall'.
-             */
-            if (is_snan(a.cls) || is_snan(b.cls)) {
-                if (issnan_prop) {
-                    return pick_nan(a, b, s);
-                } else {
-                    set_snan_flag(a, b, s);
-                }
-            }
-
-            if (is_nan(a.cls) && !is_nan(b.cls)) {
-                return b;
-            } else if (is_nan(b.cls) && !is_nan(a.cls)) {
-                return a;
-            }
-        }
-
-        return pick_nan(a, b, s);
-    } else {
-        int a_exp, b_exp;
 
 static float16 float16_minmax(float16 a, float16 b, float_status *s, int flags)
 {
@@ -3906,79 +3872,10 @@ static float16 float16_minmax(float16 a, float16 b, float_status *s, int flags)
     return float16_round_pack_canonical(pr, s);
 }
 
-#define MINMAX(sz, name, ismin, isiee, ismag, issnan_prop)              \
-float ## sz float ## sz ## _ ## name(float ## sz a, float ## sz b,      \
-                                     float_status *s)                   \
-{                                                                       \
-    FloatParts pa = float ## sz ## _unpack_canonical(a, s);             \
-    FloatParts pb = float ## sz ## _unpack_canonical(b, s);             \
-    FloatParts pr = minmax_floats(pa, pb, ismin, isiee, ismag,          \
-                                  issnan_prop, s);                      \
-                                                                        \
-    return float ## sz ## _round_pack_canonical(pr, s);                 \
-}
-
-MINMAX(16, min, true, false, false, true)
-MINMAX(16, minnum, true, true, false, true)
-MINMAX(16, minnum_noprop, true, true, false, false)
-MINMAX(16, minnummag, true, true, true, true)
-MINMAX(16, max, false, false, false, true)
-MINMAX(16, maxnum, false, true, false, true)
-MINMAX(16, maxnum_noprop, false, true, false, false)
-MINMAX(16, maxnummag, false, true, true, true)
-
-MINMAX(32, min, true, false, false, true)
-MINMAX(32, minnum, true, true, false, true)
-MINMAX(32, minnum_noprop, true, true, false, false)
-MINMAX(32, minnummag, true, true, true, true)
-MINMAX(32, max, false, false, false, true)
-MINMAX(32, maxnum, false, true, false, true)
-MINMAX(32, maxnum_noprop, false, true, false, false)
-MINMAX(32, maxnummag, false, true, true, true)
-
-MINMAX(64, min, true, false, false, true)
-MINMAX(64, minnum, true, true, false, true)
-MINMAX(64, minnum_noprop, true, true, false, false)
-MINMAX(64, minnummag, true, true, true, true)
-MINMAX(64, max, false, false, false, true)
-MINMAX(64, maxnum, false, true, false, true)
-MINMAX(64, maxnum_noprop, false, true, false, false)
-MINMAX(64, maxnummag, false, true, true, true)
-
-#undef MINMAX
-
-#define BF16_MINMAX(name, ismin, isiee, ismag, issnan_prop)             \
-bfloat16 bfloat16_ ## name(bfloat16 a, bfloat16 b, float_status *s)     \
-{                                                                       \
-    FloatParts pa = bfloat16_unpack_canonical(a, s);                    \
-    FloatParts pb = bfloat16_unpack_canonical(b, s);                    \
-    FloatParts pr = minmax_floats(pa, pb, ismin, isiee, ismag,          \
-                                  issnan_prop, s);                      \
-                                                                        \
-    return bfloat16_round_pack_canonical(pr, s);                        \
-}
-
-BF16_MINMAX(min, true, false, false, true)
-BF16_MINMAX(minnum, true, true, false, true)
-BF16_MINMAX(minnummag, true, true, true, true)
-BF16_MINMAX(max, false, false, false, true)
-BF16_MINMAX(maxnum, false, true, false, true)
-BF16_MINMAX(maxnummag, false, true, true, true)
-
-#undef BF16_MINMAX
-
-/* Floating point compare */
-static FloatRelation compare_floats(FloatParts a, FloatParts b, bool is_quiet,
-                                    float_status *s)
+static bfloat16 bfloat16_minmax(bfloat16 a, bfloat16 b,
+                                float_status *s, int flags)
 {
-    if (is_nan(a.cls) || is_nan(b.cls)) {
-        if (!is_quiet ||
-            a.cls == float_class_snan ||
-            b.cls == float_class_snan) {
-            s->float_exception_flags |= float_flag_invalid;
-        }
-        return float_relation_unordered;
-    }
+    FloatParts64 pa, pb, *pr;
 
     bfloat16_unpack_canonical(&pa, a, s);
     bfloat16_unpack_canonical(&pb, b, s);
@@ -4039,8 +3936,17 @@ MINMAX_2(float32)
 MINMAX_2(float64)
 MINMAX_2(float128)
 
+#define MINMAX_3(type) \
+    MINMAX_1(type, maxnum_noprop, minmax_isnum | minmax_ismag)      \
+    MINMAX_1(type, minnum_noprop, minmax_ismin | minmax_isnum)
+
+MINMAX_3(float16)
+MINMAX_3(float32)
+MINMAX_3(float64)
+
 #undef MINMAX_1
 #undef MINMAX_2
+#undef MINMAX_3
 
 /*
  * Floating point compare

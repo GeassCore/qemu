@@ -1241,7 +1241,6 @@ static bool amo_op(DisasContext *s, arg_rwdvm *a, uint8_t eew, uint8_t seq)
         { gen_helper_vamomaxuei8_32_v, gen_helper_vamomaxuei8_64_v },
         { gen_helper_vamomaxuei16_32_v, gen_helper_vamomaxuei16_64_v },
         { gen_helper_vamomaxuei32_32_v, gen_helper_vamomaxuei32_64_v },
-#ifdef TARGET_RISCV64
         { gen_helper_vamoswapei64_32_v, gen_helper_vamoswapei64_64_v },
         { gen_helper_vamoaddei64_32_v, gen_helper_vamoaddei64_64_v },
         { gen_helper_vamoxorei64_32_v, gen_helper_vamoxorei64_64_v },
@@ -1251,11 +1250,6 @@ static bool amo_op(DisasContext *s, arg_rwdvm *a, uint8_t eew, uint8_t seq)
         { gen_helper_vamomaxei64_32_v, gen_helper_vamomaxei64_64_v },
         { gen_helper_vamominuei64_32_v, gen_helper_vamominuei64_64_v },
         { gen_helper_vamomaxuei64_32_v, gen_helper_vamomaxuei64_64_v }
-#else
-        { NULL, NULL }, { NULL, NULL }, { NULL, NULL }, { NULL, NULL },
-        { NULL, NULL }, { NULL, NULL }, { NULL, NULL }, { NULL, NULL },
-        { NULL, NULL }
-#endif
     };
 
     if (tb_cflags(s->base.tb) & CF_PARALLEL) {
@@ -1322,7 +1316,7 @@ GEN_VEXT_AMO_TRANS(vamomaxuei32_v, MO_32, 26, rwdvm, amo_op, amo_check)
  * Index EEW cannot be greater than XLEN,
  * else an illegal instruction is raised (Section 8)
  */
-#ifdef TARGET_RISCV64
+
 GEN_VEXT_AMO_TRANS(vamoswapei64_v, MO_64, 27, rwdvm, amo_op, amo_check)
 GEN_VEXT_AMO_TRANS(vamoaddei64_v,  MO_64, 28, rwdvm, amo_op, amo_check)
 GEN_VEXT_AMO_TRANS(vamoxorei64_v,  MO_64, 29, rwdvm, amo_op, amo_check)
@@ -1332,7 +1326,7 @@ GEN_VEXT_AMO_TRANS(vamominei64_v,  MO_64, 32, rwdvm, amo_op, amo_check)
 GEN_VEXT_AMO_TRANS(vamomaxei64_v,  MO_64, 33, rwdvm, amo_op, amo_check)
 GEN_VEXT_AMO_TRANS(vamominuei64_v, MO_64, 34, rwdvm, amo_op, amo_check)
 GEN_VEXT_AMO_TRANS(vamomaxuei64_v, MO_64, 35, rwdvm, amo_op, amo_check)
-#endif
+
 
 /*
  *** Vector Integer Arithmetic Instructions

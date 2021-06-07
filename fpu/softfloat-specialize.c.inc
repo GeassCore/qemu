@@ -596,22 +596,11 @@ static int pickNaNMulAdd(FloatClass a_cls, FloatClass b_cls, FloatClass c_cls,
         return 1;
     }
 #elif defined(TARGET_RISCV)
-    /*
-     * For RISC-V, InvalidOp is set when multiplicands are Inf and zero
-     * and returns default NaN.
-     */
+    /* For RISC-V, InvalidOp is set when multiplicands are Inf and zero */
     if (infzero) {
         float_raise(float_flag_invalid, status);
-        return 3;
     }
-
-    if (is_nan(a_cls)) {
-        return 0;
-    } else if (is_nan(b_cls)) {
-        return 1;
-    } else {
-        return 2;
-    }
+    return 3; /* default NaN */
 #elif defined(TARGET_XTENSA)
     /*
      * For Xtensa, the (inf,zero,nan) case sets InvalidOp and returns

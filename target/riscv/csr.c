@@ -229,10 +229,13 @@ static RISCVException write_fflags(CPURISCVState *env, int csrno,
                                    target_ulong val)
 {
 #if !defined(CONFIG_USER_ONLY)
+    target_ulong sd;
+
+    sd = riscv_cpu_is_32bit(env) ? MSTATUS32_SD : MSTATUS64_SD;
     if (!env->debugger && !riscv_cpu_fp_enabled(env)) {
         return RISCV_EXCP_ILLEGAL_INST;
     }
-    env->mstatus |= MSTATUS_FS | MSTATUS_SD;
+    env->mstatus |= MSTATUS_FS | sd;
 #endif
     riscv_cpu_set_fflags(env, val & (FSR_AEXC >> FSR_AEXC_SHIFT));
     return RISCV_EXCP_NONE;
@@ -254,10 +257,13 @@ static RISCVException write_frm(CPURISCVState *env, int csrno,
                                 target_ulong val)
 {
 #if !defined(CONFIG_USER_ONLY)
+    target_ulong sd;
+
+    sd = riscv_cpu_is_32bit(env) ? MSTATUS32_SD : MSTATUS64_SD;
     if (!env->debugger && !riscv_cpu_fp_enabled(env)) {
         return RISCV_EXCP_ILLEGAL_INST;
     }
-    env->mstatus |= MSTATUS_FS | MSTATUS_SD;
+    env->mstatus |= MSTATUS_FS | sd;
 #endif
     env->frm = val & (FSR_RD >> FSR_RD_SHIFT);
     return RISCV_EXCP_NONE;
@@ -280,10 +286,13 @@ static RISCVException write_fcsr(CPURISCVState *env, int csrno,
                                  target_ulong val)
 {
 #if !defined(CONFIG_USER_ONLY)
+    target_ulong sd;
+
+    sd = riscv_cpu_is_32bit(env) ? MSTATUS32_SD : MSTATUS64_SD;
     if (!env->debugger && !riscv_cpu_fp_enabled(env)) {
         return RISCV_EXCP_ILLEGAL_INST;
     }
-    env->mstatus |= MSTATUS_FS | MSTATUS_SD;
+    env->mstatus |= MSTATUS_FS | sd;
 #endif
     env->frm = (val & FSR_RD) >> FSR_RD_SHIFT;
     riscv_cpu_set_fflags(env, (val & FSR_AEXC) >> FSR_AEXC_SHIFT);
@@ -320,10 +329,13 @@ static RISCVException write_vxrm(CPURISCVState *env, int csrno,
                                  target_ulong val)
 {
 #if !defined(CONFIG_USER_ONLY)
+    target_ulong sd;
+
+    sd = riscv_cpu_is_32bit(env) ? MSTATUS32_SD : MSTATUS64_SD;
     if (!env->debugger && !riscv_cpu_vector_enabled(env)) {
         return -RISCV_EXCP_ILLEGAL_INST;
     }
-    env->mstatus |= MSTATUS_VS | MSTATUS_SD;
+    env->mstatus |= MSTATUS_VS | sd;
 #endif
 
     env->vxrm = val;
@@ -341,10 +353,13 @@ static RISCVException write_vxsat(CPURISCVState *env, int csrno,
                                   target_ulong val)
 {
 #if !defined(CONFIG_USER_ONLY)
+    target_ulong sd;
+
+    sd = riscv_cpu_is_32bit(env) ? MSTATUS32_SD : MSTATUS64_SD;
     if (!env->debugger && !riscv_cpu_vector_enabled(env)) {
         return -RISCV_EXCP_ILLEGAL_INST;
     }
-    env->mstatus |= MSTATUS_VS | MSTATUS_SD;
+    env->mstatus |= MSTATUS_VS | sd;
 #endif
 
     env->vxsat = val;
@@ -362,10 +377,13 @@ static RISCVException write_vstart(CPURISCVState *env, int csrno,
                                    target_ulong val)
 {
 #if !defined(CONFIG_USER_ONLY)
+    target_ulong sd;
+
+    sd = riscv_cpu_is_32bit(env) ? MSTATUS32_SD : MSTATUS64_SD;
     if (!env->debugger && !riscv_cpu_vector_enabled(env)) {
         return -RISCV_EXCP_ILLEGAL_INST;
     }
-    env->mstatus |= MSTATUS_VS | MSTATUS_SD;
+    env->mstatus |= MSTATUS_VS | sd;
 #endif
 
     /*
@@ -385,10 +403,13 @@ static RISCVException read_vcsr(CPURISCVState *env, int csrno, target_ulong *val
 static RISCVException write_vcsr(CPURISCVState *env, int csrno, target_ulong val)
 {
 #if !defined(CONFIG_USER_ONLY)
+    target_ulong sd;
+
+    sd = riscv_cpu_is_32bit(env) ? MSTATUS32_SD : MSTATUS64_SD;
     if (!env->debugger && !riscv_cpu_vector_enabled(env)) {
         return -RISCV_EXCP_ILLEGAL_INST;
     }
-    env->mstatus |= MSTATUS_VS | MSTATUS_SD;
+    env->mstatus |= MSTATUS_VS | sd;
 #endif
 
     env->vxrm = (val & VCSR_VXRM) >> VCSR_VXRM_SHIFT;
@@ -502,7 +523,7 @@ static const target_ulong delegable_excps =
     (1ULL << (RISCV_EXCP_STORE_GUEST_AMO_ACCESS_FAULT));
 static const target_ulong sstatus_v1_10_mask = SSTATUS_SIE | SSTATUS_SPIE |
     SSTATUS_UIE | SSTATUS_UPIE | SSTATUS_SPP | SSTATUS_FS | SSTATUS_XS |
-    SSTATUS_SUM | SSTATUS_MXR | SSTATUS_SD | SSTATUS_VS;
+    SSTATUS_SUM | SSTATUS_MXR | SSTATUS_VS;
 static const target_ulong sip_writable_mask = SIP_SSIP | MIP_USIP | MIP_UEIP;
 static const target_ulong hip_writable_mask = MIP_VSSIP;
 static const target_ulong hvip_writable_mask = MIP_VSSIP | MIP_VSTIP | MIP_VSEIP;

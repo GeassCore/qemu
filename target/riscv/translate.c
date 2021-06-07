@@ -433,6 +433,8 @@ static inline void mark_fs_dirty(DisasContext *ctx) { }
 static void mark_vs_dirty(DisasContext *ctx)
 {
     TCGv tmp;
+    target_ulong sd;
+
     if (ctx->mstatus_vs == MSTATUS_VS) {
         return;
     }
@@ -440,13 +442,15 @@ static void mark_vs_dirty(DisasContext *ctx)
     ctx->mstatus_vs = MSTATUS_VS;
 
     tmp = tcg_temp_new();
+    sd = is_32bit(ctx) ? MSTATUS32_SD : MSTATUS64_SD;
+
     tcg_gen_ld_tl(tmp, cpu_env, offsetof(CPURISCVState, mstatus));
-    tcg_gen_ori_tl(tmp, tmp, MSTATUS_VS | MSTATUS_SD);
+    tcg_gen_ori_tl(tmp, tmp, MSTATUS_VS | sd);
     tcg_gen_st_tl(tmp, cpu_env, offsetof(CPURISCVState, mstatus));
 
     if (ctx->virt_enabled) {
         tcg_gen_ld_tl(tmp, cpu_env, offsetof(CPURISCVState, mstatus_hs));
-        tcg_gen_ori_tl(tmp, tmp, MSTATUS_VS | MSTATUS_SD);
+        tcg_gen_ori_tl(tmp, tmp, MSTATUS_VS | sd);
         tcg_gen_st_tl(tmp, cpu_env, offsetof(CPURISCVState, mstatus_hs));
     }
     tcg_temp_free(tmp);
@@ -455,82 +459,82 @@ static void mark_vs_dirty(DisasContext *ctx)
 static inline void mark_vs_dirty(DisasContext *ctx) { }
 #endif
 
-#if !defined(TARGET_RISCV64)
-static void gen_fp_load(DisasContext *ctx, uint32_t opc, int rd,
-        int rs1, target_long imm)
-{
-    TCGv t0;
+// #if !defined(TARGET_RISCV64)
+// static void gen_fp_load(DisasContext *ctx, uint32_t opc, int rd,
+//         int rs1, target_long imm)
+// {
+//     TCGv t0;
 
-    if (ctx->mstatus_fs == 0) {
-        gen_exception_illegal(ctx);
-        return;
-    }
+//     if (ctx->mstatus_fs == 0) {
+//         gen_exception_illegal(ctx);
+//         return;
+//     }
 
-    t0 = tcg_temp_new();
-    gen_get_gpr(t0, rs1);
-    tcg_gen_addi_tl(t0, t0, imm);
+//     t0 = tcg_temp_new();
+//     gen_get_gpr(t0, rs1);
+//     tcg_gen_addi_tl(t0, t0, imm);
 
-    switch (opc) {
-    case OPC_RISC_FLW:
-        if (!has_ext(ctx, RVF)) {
-            goto do_illegal;
-        }
-        tcg_gen_qemu_ld_i64(cpu_fpr[rd], t0, ctx->mem_idx, MO_TEUL);
-        /* RISC-V requires NaN-boxing of narrower width floating point values */
-        tcg_gen_ori_i64(cpu_fpr[rd], cpu_fpr[rd], 0xffffffff00000000ULL);
-        break;
-    case OPC_RISC_FLD:
-        if (!has_ext(ctx, RVD)) {
-            goto do_illegal;
-        }
-        tcg_gen_qemu_ld_i64(cpu_fpr[rd], t0, ctx->mem_idx, MO_TEQ);
-        break;
-    do_illegal:
-    default:
-        gen_exception_illegal(ctx);
-        break;
-    }
-    tcg_temp_free(t0);
+//     switch (opc) {
+//     case OPC_RISC_FLW:
+//         if (!has_ext(ctx, RVF)) {
+//             goto do_illegal;
+//         }
+//         tcg_gen_qemu_ld_i64(cpu_fpr[rd], t0, ctx->mem_idx, MO_TEUL);
+//         /* RISC-V requires NaN-boxing of narrower width floating point values */
+//         tcg_gen_ori_i64(cpu_fpr[rd], cpu_fpr[rd], 0xffffffff00000000ULL);
+//         break;
+//     case OPC_RISC_FLD:
+//         if (!has_ext(ctx, RVD)) {
+//             goto do_illegal;
+//         }
+//         tcg_gen_qemu_ld_i64(cpu_fpr[rd], t0, ctx->mem_idx, MO_TEQ);
+//         break;
+//     do_illegal:
+//     default:
+//         gen_exception_illegal(ctx);
+//         break;
+//     }
+//     tcg_temp_free(t0);
 
-    mark_fs_dirty(ctx);
-}
+//     mark_fs_dirty(ctx);
+// }
 
-static void gen_fp_store(DisasContext *ctx, uint32_t opc, int rs1,
-        int rs2, target_long imm)
-{
-    TCGv t0;
+// static void gen_fp_store(DisasContext *ctx, uint32_t opc, int rs1,
+//         int rs2, target_long imm)
+// {
+//     TCGv t0;
 
-    if (ctx->mstatus_fs == 0) {
-        gen_exception_illegal(ctx);
-        return;
-    }
+//     if (ctx->mstatus_fs == 0) {
+//         gen_exception_illegal(ctx);
+//         return;
+//     }
 
-    t0 = tcg_temp_new();
-    gen_get_gpr(t0, rs1);
-    tcg_gen_addi_tl(t0, t0, imm);
+//     t0 = tcg_temp_new();
+//     gen_get_gpr(t0, rs1);
+//     tcg_gen_addi_tl(t0, t0, imm);
 
-    switch (opc) {
-    case OPC_RISC_FSW:
-        if (!has_ext(ctx, RVF)) {
-            goto do_illegal;
-        }
-        tcg_gen_qemu_st_i64(cpu_fpr[rs2], t0, ctx->mem_idx, MO_TEUL);
-        break;
-    case OPC_RISC_FSD:
-        if (!has_ext(ctx, RVD)) {
-            goto do_illegal;
-        }
-        tcg_gen_qemu_st_i64(cpu_fpr[rs2], t0, ctx->mem_idx, MO_TEQ);
-        break;
-    do_illegal:
-    default:
-        gen_exception_illegal(ctx);
-        break;
-    }
+//     switch (opc) {
+//     case OPC_RISC_FSW:
+//         if (!has_ext(ctx, RVF)) {
+//             goto do_illegal;
+//         }
+//         tcg_gen_qemu_st_i64(cpu_fpr[rs2], t0, ctx->mem_idx, MO_TEUL);
+//         break;
+//     case OPC_RISC_FSD:
+//         if (!has_ext(ctx, RVD)) {
+//             goto do_illegal;
+//         }
+//         tcg_gen_qemu_st_i64(cpu_fpr[rs2], t0, ctx->mem_idx, MO_TEQ);
+//         break;
+//     do_illegal:
+//     default:
+//         gen_exception_illegal(ctx);
+//         break;
+//     }
 
-    tcg_temp_free(t0);
-}
-#endif
+//     tcg_temp_free(t0);
+// }
+// #endif
 
 static void gen_set_rm(DisasContext *ctx, int rm)
 {

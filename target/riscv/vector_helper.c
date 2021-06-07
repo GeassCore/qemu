@@ -737,7 +737,7 @@ GEN_VEXT_AMO_NOATOMIC_OP(vamomaxuei16_32_v, uint32_t, H4, DO_MAX,  l)
 GEN_VEXT_AMO_NOATOMIC_OP(vamomaxuei16_64_v, uint64_t, H8, DO_MAX,  q)
 GEN_VEXT_AMO_NOATOMIC_OP(vamomaxuei32_32_v, uint32_t, H4, DO_MAX,  l)
 GEN_VEXT_AMO_NOATOMIC_OP(vamomaxuei32_64_v, uint64_t, H8, DO_MAX,  q)
-#ifdef TARGET_RISCV64
+
 GEN_VEXT_AMO_NOATOMIC_OP(vamoswapei64_32_v, uint32_t, H4, DO_SWAP, l)
 GEN_VEXT_AMO_NOATOMIC_OP(vamoswapei64_64_v, uint64_t, H8, DO_SWAP, q)
 GEN_VEXT_AMO_NOATOMIC_OP(vamoaddei64_32_v,  uint32_t, H4, DO_ADD,  l)
@@ -756,7 +756,7 @@ GEN_VEXT_AMO_NOATOMIC_OP(vamominuei64_32_v, uint32_t, H4, DO_MIN,  l)
 GEN_VEXT_AMO_NOATOMIC_OP(vamominuei64_64_v, uint64_t, H8, DO_MIN,  q)
 GEN_VEXT_AMO_NOATOMIC_OP(vamomaxuei64_32_v, uint32_t, H4, DO_MAX,  l)
 GEN_VEXT_AMO_NOATOMIC_OP(vamomaxuei64_64_v, uint64_t, H8, DO_MAX,  q)
-#endif
+
 
 static inline void
 vext_amo_noatomic(void *vs3, void *v0, target_ulong base,
@@ -850,7 +850,7 @@ GEN_VEXT_AMO(vamomaxuei16_32_v, int32_t, idx_h)
 GEN_VEXT_AMO(vamomaxuei16_64_v, int64_t, idx_h)
 GEN_VEXT_AMO(vamomaxuei32_32_v, int32_t, idx_w)
 GEN_VEXT_AMO(vamomaxuei32_64_v, int64_t, idx_w)
-#ifdef TARGET_RISCV64
+
 GEN_VEXT_AMO(vamoswapei64_32_v, int32_t, idx_d)
 GEN_VEXT_AMO(vamoswapei64_64_v, int64_t, idx_d)
 GEN_VEXT_AMO(vamoaddei64_32_v,  int32_t, idx_d)
@@ -869,7 +869,7 @@ GEN_VEXT_AMO(vamominuei64_32_v, int32_t, idx_d)
 GEN_VEXT_AMO(vamominuei64_64_v, int64_t, idx_d)
 GEN_VEXT_AMO(vamomaxuei64_32_v, int32_t, idx_d)
 GEN_VEXT_AMO(vamomaxuei64_64_v, int64_t, idx_d)
-#endif
+
 
 /*
  *** Vector Integer Arithmetic Instructions
