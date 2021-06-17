@@ -19,6 +19,7 @@ riscv_ss.add(files(
   'bitmanip_helper.c',
   'packed_helper.c',
   'translate.c',
+  'crypto_helper.c',
 ))
 
 riscv_softmmu_ss = ss.source_set()
