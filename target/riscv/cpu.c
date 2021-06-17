@@ -617,6 +617,9 @@ static void riscv_cpu_realize(DeviceState *dev, Error **errp)
         if (cpu->cfg.ext_k) {
             target_misa |= RVK;
         }
+        if (cpu->cfg.ext_zfinx && !cpu->cfg.ext_zdinx) {
+           target_misa &= ~RVD;
+        }
 
         set_misa(env, target_misa);
     }
@@ -655,6 +658,8 @@ static Property riscv_cpu_properties[] = {
     DEFINE_PROP_BOOL("x-k", RISCVCPU, cfg.ext_k, false),
     DEFINE_PROP_BOOL("Counters", RISCVCPU, cfg.ext_counters, true),
     DEFINE_PROP_BOOL("Zifencei", RISCVCPU, cfg.ext_ifencei, true),
+    DEFINE_PROP_BOOL("Zfinx", RISCVCPU, cfg.ext_zfinx, false),
+    DEFINE_PROP_BOOL("Zdinx", RISCVCPU, cfg.ext_zdinx, false),
     DEFINE_PROP_BOOL("Zicsr", RISCVCPU, cfg.ext_icsr, true),
     DEFINE_PROP_STRING("priv_spec", RISCVCPU, cfg.priv_spec),
     DEFINE_PROP_STRING("bext_spec", RISCVCPU, cfg.bext_spec),
