@@ -2301,22 +2301,22 @@ static inline void do_kmar64(CPURISCVState *env, void *vd, void *va,
     int32_t *a = va, *b = vb;
     int64_t *d = vd, *c = vc;
     int64_t m0 =  (int64_t)a[H4(i)] * b[H4(i)];
-    if (!riscv_cpu_is_32bit(env)) {
-        int64_t m1 =  (int64_t)a[H4(i + 1)] * b[H4(i + 1)];
-        if (a[H4(i)] == INT32_MIN && b[H4(i)] == INT32_MIN &&
-            a[H4(i + 1)] == INT32_MIN && b[H4(i + 1)] == INT32_MIN) {
-            if (*c >= 0) {
-                *d = INT64_MAX;
-                env->vxsat = 1;
-            } else {
-                *d = sadd64(env, 0, *c + m0, m1);
-            }
+#ifdef TARGET_RISCV64
+    int64_t m1 =  (int64_t)a[H4(i + 1)] * b[H4(i + 1)];
+    if (a[H4(i)] == INT32_MIN && b[H4(i)] == INT32_MIN &&
+        a[H4(i + 1)] == INT32_MIN && b[H4(i + 1)] == INT32_MIN) {
+        if (*c >= 0) {
+            *d = INT64_MAX;
+            env->vxsat = 1;
         } else {
-            *d = sadd64(env, 0, *c, m0 + m1);
+            *d = sadd64(env, 0, *c + m0, m1);
         }
     } else {
-        *d = sadd64(env, 0, *c, m0);
+        *d = sadd64(env, 0, *c, m0 + m1);
     }
+#else
+    *d = sadd64(env, 0, *c, m0);
+#endif
 }
 
 RVPR64_ACC(kmar64, 1, sizeof(target_ulong));
@@ -2328,7 +2328,7 @@ static inline void do_kmsr64(CPURISCVState *env, void *vd, void *va,
     int64_t *d = vd, *c = vc;
 
     int64_t m0 =  (int64_t)a[H4(i)] * b[H4(i)];
-    if (!riscv_cpu_is_32bit(env)) {
+#ifdef TARGET_RISCV64
         int64_t m1 =  (int64_t)a[H4(i + 1)] * b[H4(i + 1)];
         if (a[H4(i)] == INT32_MIN && b[H4(i)] == INT32_MIN &&
             a[H4(i + 1)] == INT32_MIN && b[H4(i + 1)] == INT32_MIN) {
@@ -2341,9 +2341,9 @@ static inline void do_kmsr64(CPURISCVState *env, void *vd, void *va,
         } else {
             *d = ssub64(env, 0, *c, m0 + m1);
         }
-    } else {
-        *d = ssub64(env, 0, *c, m0);
-    }
+#else
+    *d = ssub64(env, 0, *c, m0);
+#endif
 }
 
 RVPR64_ACC(kmsr64, 1, sizeof(target_ulong));
