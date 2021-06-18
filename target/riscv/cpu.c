@@ -199,7 +199,7 @@ static void rv64_plct_n64_cpu_init(Object *obj)
 static void rv64_plct_u64_cpu_init(Object *obj)
 {
     CPURISCVState *env = &RISCV_CPU(obj)->env;
-    set_misa(env, RV64 | RVI | RVM | RVA | RVF | RVD | RVC | RVS | RVU);
+    set_misa(env, RV64 | RVI | RVM | RVA | RVF | RVD | RVC | RVS | RVU | RVB | RVP | RVK | RVV);
     set_priv_version(env, PRIV_VERSION_1_10_0);
 }
 #else
@@ -254,7 +254,7 @@ static void rv32_plct_n32_cpu_init(Object *obj)
 static void rv32_plct_u32_cpu_init(Object *obj)
 {
     CPURISCVState *env = &RISCV_CPU(obj)->env;
-    set_misa(env, RV32 | RVI | RVM | RVA | RVF | RVD | RVC | RVS | RVU);
+    set_misa(env, RV32 | RVI | RVM | RVA | RVF | RVD | RVC | RVS | RVU | RVB | RVP | RVK | RVV);
     set_priv_version(env, PRIV_VERSION_1_10_0);
 }
 
